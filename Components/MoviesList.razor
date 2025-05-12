@@ -1,0 +1,27 @@
+﻿@* @using Lab5_OwnDBWebApp.Models *@
+@* @code { *@
+@*     [Parameter] *@
+@*     public List<Movie> Movies { get; set; } = new(); *@
+@* } *@
+
+@* <div> *@
+@*     <h4>Movie Reviews</h4> *@
+
+@*     @if (Movies.Any()) *@
+@*     { *@
+@*         <ul class="list-group"> *@
+@*             @foreach (var movie in Movies) *@
+@*             { *@
+@*                 <li class="list-group-item"> *@
+@*                     <strong>@movie.Title</strong><br /> *@
+@*                     Rate: @movie.Rate/10<br /> *@
+@*                     Added by: @movie.UserName *@
+@*                 </li> *@
+@*             } *@
+@*         </ul> *@
+@*     } *@
+@*     else *@
+@*     { *@
+@*         <p>No movies added yet.</p> *@
+@*     } *@
+@* </div> *@

@@ -1,0 +1,129 @@
+﻿@page "/movies"
+@rendermode InteractiveServer
+@using Lab5_OwnDBWebApp.Data
+@using Lab5_OwnDBWebApp.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@attribute [Authorize]
+
+<h3>Add New Movie</h3>
+
+<EditForm Model="@newMovie" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Title</label>
+        <InputText @bind-Value="newMovie.Title" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Description</label>
+        <InputTextArea @bind-Value="newMovie.Description" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Release Date</label>
+        <InputDate @bind-Value="newMovie.ReleaseDate" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Rate</label>
+        <InputNumber @bind-Value="newMovie.Rate" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Image URL</label>
+        <InputText @bind-Value="newMovie.ImageUrl" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Movie</button>
+</EditForm>
+
+<hr />
+
+<h3>Movies List</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <button class="btn btn-link" @onclick="@(() => SortBy("Title"))">Title</button>
+            </th>
+            <th>
+                <button class="btn btn-link" @onclick="@(() => SortBy("Rate"))">Rate</button>
+            </th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var movie in movies)
+        {
+            <tr>
+                <td>@movie.Title</td>
+                <td>@movie.Rate</td>
+                <td>
+                    <a href="/moviedetails/@movie.Id" class="btn btn-sm btn-primary">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    private List<Movie> movies = new();
+    private Movie newMovie = new();
+    private bool sortAscending = true;
+    private string? sortColumn = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        movies = await DbContext.Movies.ToListAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            newMovie.UserId = user.FindFirst(c => c.Type == "sub")?.Value;
+            newMovie.UserName = user.Identity.Name;
+        }
+
+        DbContext.Movies.Add(newMovie);
+        await DbContext.SaveChangesAsync();
+        newMovie = new();
+        movies = await DbContext.Movies.ToListAsync();
+    }
+
+    private void SortBy(string columnName)
+    {
+        if (sortColumn == columnName)
+        {
+            sortAscending = !sortAscending;
+        }
+        else
+        {
+            sortColumn = columnName;
+            sortAscending = true;
+        }
+
+        switch (columnName)
+        {
+            case "Title":
+                movies = sortAscending ?
+                    movies.OrderBy(m => m.Title).ToList() :
+                    movies.OrderByDescending(m => m.Title).ToList();
+                break;
+
+            case "Rate":
+                movies = sortAscending ?
+                    movies.OrderBy(m => m.Rate).ToList() :
+                    movies.OrderByDescending(m => m.Rate).ToList();
+                break;
+        }
+    }
+
+}
+

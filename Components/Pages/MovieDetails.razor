@@ -1,0 +1,33 @@
+﻿// Pages/MovieDetails.razor
+@page "/moviedetails/{Id:int}"
+@rendermode InteractiveServer
+@using Lab5_OwnDBWebApp.Data
+@using Lab5_OwnDBWebApp.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@attribute [Authorize]
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Movie movie = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        movie = await DbContext.Movies.FindAsync(Id);
+    }
+}
+
+@if (movie != null)
+{
+    <h3>@movie.Title</h3>
+    <p><strong>Release Date:</strong> @movie.ReleaseDate?.ToShortDateString()</p>
+    <p><strong>Description:</strong> @movie.Description</p>
+    <p><strong>Current Rate:</strong> @movie.Rate/10</p>
+    @if (!string.IsNullOrEmpty(movie.ImageUrl))
+    {
+        <img src="@movie.ImageUrl" alt="Movie Image" style="width:300px;height:auto;" />
+    }
+}
